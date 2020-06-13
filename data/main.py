@@ -1,21 +1,24 @@
 """
-This module contains main Game class
+This module contains main Game class.
 """
 
 import pygame as pg
 
-from .globals import SCREEN_SIZE
+from .maze import Maze
+from .globals import SCREEN_HEIGHT, SCREEN_WIDTH, DEFAULT_CAPTION, GREY
 
 
 class Game(object):
     """ Game class for entire project.
     """
-    def __init__(self, caption):
-        self._caption = caption
-        self._screen = pg.display.set_mode(SCREEN_SIZE)
+    def __init__(self, caption=None):
+        self._caption = caption or DEFAULT_CAPTION
+        pg.display.set_caption(self._caption)
+        self._maze = Maze()
+        self._screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self._stop = False
 
-    def event_loop(self):
+    def _event_loop(self):
         """ Process all events. """
         for event in pg.event.get():
             if event.type == pg.KEYDOWN:
@@ -25,12 +28,18 @@ class Game(object):
             if event.type == pg.QUIT:
                 self._stop = True
 
-    def update(self):
+    def _draw(self):
+        """ Draw objects on screen. """
+        self._maze.draw(self._screen)
+
+    def _update(self):
         """ Update the display. """
+        self._draw()
         pg.display.update()
 
     def main_loop(self):
         """ Main loop for entire project. """
         while not self._stop:
-            self.event_loop()
-            self.update()
+            self._event_loop()
+            self._screen.fill(GREY)
+            self._update()
