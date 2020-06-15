@@ -5,7 +5,7 @@ This module contains main Game class.
 import pygame as pg
 
 from .maze import Maze
-from .globals import SCREEN_HEIGHT, SCREEN_WIDTH, DEFAULT_CAPTION, GREY
+from .globals import SCREEN_HEIGHT, SCREEN_WIDTH, DEFAULT_CAPTION, GREY, FPS
 
 
 class Game(object):
@@ -16,6 +16,7 @@ class Game(object):
         pg.display.set_caption(self._caption)
         self._maze = Maze()
         self._screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self._clock = pg.time.Clock()
         self._stop = False
 
     def _event_loop(self):
@@ -32,14 +33,11 @@ class Game(object):
         """ Draw objects on screen. """
         self._maze.draw(self._screen)
 
-    def _update(self):
-        """ Update the display. """
-        self._draw()
-        pg.display.update()
-
     def main_loop(self):
         """ Main loop for entire project. """
         while not self._stop:
-            self._event_loop()
+            self._clock.tick(FPS)
             self._screen.fill(GREY)
-            self._update()
+            self._event_loop()
+            self._draw()
+            pg.display.update()
