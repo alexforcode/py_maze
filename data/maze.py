@@ -62,7 +62,7 @@ class Cell(object):
         return self._neighbours[randint(0, len(self._neighbours) - 1)]
 
     def draw(self, screen, current):
-        """ Color visited or current cell. Draw walls of cell if they exists. """
+        """ Paint visited or current cell. Draw walls of cell if they exists. """
         if self._visited:
             pg.draw.rect(screen, TEAL, (self._x, self._y, CELL_SIZE, CELL_SIZE))
 
@@ -84,6 +84,7 @@ class Maze(object):
     """
     def __init__(self):
         self._grid = []
+        self._visited = []
         self._cols = SCREEN_WIDTH // CELL_SIZE
         self._rows = SCREEN_HEIGHT // CELL_SIZE
         self._build_grid()
@@ -119,11 +120,16 @@ class Maze(object):
     def _update(self):
         """ Update cells in the grid. """
         self._current_cell.visited = True
-        next_cell = self._current_cell.get_neighbour()
+        next_cell = self._current_cell.get_neighbour()  # get neighbour or None
 
         if next_cell:
             self._remove_walls(self._current_cell, next_cell)
+            self._visited.append(self._current_cell)
             self._current_cell = next_cell
+        # if next_cell is None return on previous cell
+        else:
+            if self._visited:
+                self._current_cell = self._visited.pop()
 
     @staticmethod
     def _remove_walls(cur_cell, next_cell):
