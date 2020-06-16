@@ -5,7 +5,7 @@ from random import randint
 
 import pygame as pg
 
-from .globals import CELL_SIZE, WHITE, SCREEN_HEIGHT, SCREEN_WIDTH, ORANGE
+from .globals import CELL_SIZE, WHITE, SCREEN_HEIGHT, SCREEN_WIDTH, ORANGE, TEAL
 
 
 class Cell(object):
@@ -45,19 +45,28 @@ class Cell(object):
     def row(self):
         return self._row
 
+    @property
+    def walls(self):
+        return self._walls
+
     def _check_neighbours(self):
+        """ Check if neighbours of the cell are not visited """
         if self._neighbours:
             self._neighbours = [neighbour for neighbour in self._neighbours if not neighbour.visited]
 
     def get_neighbour(self):
+        """ Get random not-visited neighbour of the cell. Return None if all neighbours were visited. """
         self._check_neighbours()
         if not self._neighbours:
             return None
         return self._neighbours[randint(0, len(self._neighbours) - 1)]
 
-    def draw(self, screen):
-        """ Draw walls of cell if they exists. """
+    def draw(self, screen, current):
+        """ Color visited or current cell. Draw walls of cell if they exists. """
         if self._visited:
+            pg.draw.rect(screen, TEAL, (self._x, self._y, CELL_SIZE, CELL_SIZE))
+
+        if self is current:
             pg.draw.rect(screen, ORANGE, (self._x, self._y, CELL_SIZE, CELL_SIZE))
 
         if self._walls['top']:
@@ -87,6 +96,10 @@ class Maze(object):
                 cell = Cell(col, row)
                 self._grid.append(cell)
 
+        self._add_neighbours()
+
+    def _add_neighbours(self):
+        """ Add all neighbours to each cell. """
         for cell in self._grid:
             top = self._cell_neighbour_index(cell.col, cell.row - 1)
             right = self._cell_neighbour_index(cell.col + 1, cell.row)
@@ -98,19 +111,42 @@ class Maze(object):
                     cell.neighbours.append(self._grid[index])
 
     def _cell_neighbour_index(self, col, row):
+        """ Get cell's neighbour index grid. """
         if col < 0 or row < 0 or col > self._cols - 1 or row > self._rows - 1:
             return
         return col + row * self._cols
 
     def _update(self):
+        """ Update cells in the grid. """
         self._current_cell.visited = True
         next_cell = self._current_cell.get_neighbour()
+
         if next_cell:
+            self._remove_walls(self._current_cell, next_cell)
             self._current_cell = next_cell
+
+    @staticmethod
+    def _remove_walls(cur_cell, next_cell):
+        """ Remove wall between two cells. """
+        hor_shift = cur_cell.col - next_cell.col
+        if hor_shift == -1:
+            cur_cell.walls['right'] = False
+            next_cell.walls['left'] = False
+        elif hor_shift == 1:
+            cur_cell.walls['left'] = False
+            next_cell.walls['right'] = False
+        else:
+            vert_shift = cur_cell.row - next_cell.row
+            if vert_shift == -1:
+                cur_cell.walls['bottom'] = False
+                next_cell.walls['top'] = False
+            elif vert_shift == 1:
+                cur_cell.walls['top'] = False
+                next_cell.walls['bottom'] = False
 
     def draw(self, screen):
         """ Draw all cells on the screen. """
         self._update()
 
         for cell in self._grid:
-            cell.draw(screen)
+            cell.draw(screen, self._current_cell)
