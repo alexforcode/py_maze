@@ -49,17 +49,12 @@ class Cell(object):
     def walls(self):
         return self._walls
 
-    def _check_neighbours(self):
-        """ Check if neighbours of the cell are not visited """
-        if self._neighbours:
-            self._neighbours = [neighbour for neighbour in self._neighbours if not neighbour.visited]
-
     def get_neighbour(self):
         """ Get random not-visited neighbour of the cell. Return None if all neighbours were visited. """
-        self._check_neighbours()
-        if not self._neighbours:
-            return None
-        return self._neighbours[randint(0, len(self._neighbours) - 1)]
+        not_visited = [neighbour for neighbour in self._neighbours if not neighbour.visited]
+        if not not_visited:
+            return
+        return not_visited[randint(0, len(not_visited) - 1)]
 
     def draw(self, screen, current):
         """ Paint visited or current cell. Draw walls of cell if they exists. """
