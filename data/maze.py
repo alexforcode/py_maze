@@ -90,14 +90,11 @@ class Maze(object):
         self._build_grid()
         self._current_cell = self._grid[0]
 
-    def _build_grid(self):
-        """ Build grid of cells. """
-        for row in range(self._rows):
-            for col in range(self._cols):
-                cell = Cell(col, row)
-                self._grid.append(cell)
-
-        self._add_neighbours()
+    def _cell_neighbour_index(self, col, row):
+        """ Get cell's neighbour index grid. """
+        if col < 0 or row < 0 or col > self._cols - 1 or row > self._rows - 1:
+            return
+        return col + row * self._cols
 
     def _add_neighbours(self):
         """ Add all neighbours to each cell. """
@@ -111,25 +108,14 @@ class Maze(object):
                 if index is not None:
                     cell.neighbours.append(self._grid[index])
 
-    def _cell_neighbour_index(self, col, row):
-        """ Get cell's neighbour index grid. """
-        if col < 0 or row < 0 or col > self._cols - 1 or row > self._rows - 1:
-            return
-        return col + row * self._cols
+    def _build_grid(self):
+        """ Build grid of cells. """
+        for row in range(self._rows):
+            for col in range(self._cols):
+                cell = Cell(col, row)
+                self._grid.append(cell)
 
-    def _update(self):
-        """ Update cells in the grid. """
-        self._current_cell.visited = True
-        next_cell = self._current_cell.get_neighbour()  # get neighbour or None
-
-        if next_cell:
-            self._remove_walls(self._current_cell, next_cell)
-            self._visited.append(self._current_cell)
-            self._current_cell = next_cell
-        # if next_cell is None return on previous cell
-        else:
-            if self._visited:
-                self._current_cell = self._visited.pop()
+        self._add_neighbours()
 
     @staticmethod
     def _remove_walls(cur_cell, next_cell):
@@ -149,6 +135,20 @@ class Maze(object):
             elif vert_shift == 1:
                 cur_cell.walls['top'] = False
                 next_cell.walls['bottom'] = False
+
+    def _update(self):
+        """ Update cells in the grid. """
+        self._current_cell.visited = True
+        next_cell = self._current_cell.get_neighbour()  # get neighbour or None
+
+        if next_cell:
+            self._remove_walls(self._current_cell, next_cell)
+            self._visited.append(self._current_cell)
+            self._current_cell = next_cell
+        # if next_cell is None return on previous cell
+        else:
+            if self._visited:
+                self._current_cell = self._visited.pop()
 
     def draw(self, screen):
         """ Draw all cells on the screen. """
