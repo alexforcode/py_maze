@@ -52,12 +52,12 @@ class Cell(object):
     def get_neighbour(self):
         """ Get random not-visited neighbour of the cell. Return None if all neighbours were visited. """
         not_visited = [neighbour for neighbour in self._neighbours if not neighbour.visited]
-        if not not_visited:
-            return
-        return not_visited[randint(0, len(not_visited) - 1)]
+        if not_visited:
+            return not_visited[randint(0, len(not_visited) - 1)]
+        return
 
     def draw(self, screen, current):
-        """ Paint visited or current cell. Draw walls of cell if they exists. """
+        """ Paint visited and current cell. Draw walls of cell if they exists. """
         if self._visited:
             pg.draw.rect(screen, TEAL, (self._x, self._y, CELL_SIZE, CELL_SIZE))
 
@@ -85,23 +85,22 @@ class Maze(object):
         self._build_grid()
         self._current_cell = self._grid[0]
 
-    def _cell_neighbour_index(self, col, row):
+    def _neighbour_index(self, col, row):
         """ Get cell's neighbour index grid. """
         if col < 0 or row < 0 or col > self._cols - 1 or row > self._rows - 1:
             return
         return col + row * self._cols
 
-    def _add_neighbours(self):
-        """ Add all neighbours to each cell. """
-        for cell in self._grid:
-            top = self._cell_neighbour_index(cell.col, cell.row - 1)
-            right = self._cell_neighbour_index(cell.col + 1, cell.row)
-            bottom = self._cell_neighbour_index(cell.col, cell.row + 1)
-            left = self._cell_neighbour_index(cell.col - 1, cell.row)
+    def _add_neighbours(self, cell):
+        """ Add all neighbours to cell. """
+        top = self._neighbour_index(cell.col, cell.row - 1)
+        right = self._neighbour_index(cell.col + 1, cell.row)
+        bottom = self._neighbour_index(cell.col, cell.row + 1)
+        left = self._neighbour_index(cell.col - 1, cell.row)
 
-            for index in [top, right, bottom, left]:
-                if index is not None:
-                    cell.neighbours.append(self._grid[index])
+        for index in [top, right, bottom, left]:
+            if index:
+                cell.neighbours.append(self._grid[index])
 
     def _build_grid(self):
         """ Build grid of cells. """
@@ -110,7 +109,8 @@ class Maze(object):
                 cell = Cell(col, row)
                 self._grid.append(cell)
 
-        self._add_neighbours()
+        for cell in self._grid:
+            self._add_neighbours(cell)
 
     @staticmethod
     def _remove_walls(cur_cell, next_cell):
